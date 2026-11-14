@@ -1,14 +1,13 @@
 # ==============================================================================
 # 1. Builder Stage
 # ==============================================================================
-FROM rust:1.85-slim AS builder
+FROM rust:bookworm AS builder
 
-WORKDIR /usr/src/taskflow
+WORKDIR /app
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    pkg-config \
-    && rm -rf /var/lib/apt/lists/*
+# Override release profile settings to stay within Render free tier 512MB RAM limit
+ENV CARGO_PROFILE_RELEASE_LTO=false \
+    CARGO_PROFILE_RELEASE_CODEGEN_UNITS=4
 
 # Copy dependency manifests
 COPY Cargo.toml Cargo.lock ./
@@ -19,7 +18,7 @@ COPY migrations ./migrations
 COPY templates ./templates
 COPY static ./static
 
-# Compile optimized release binary
+# Compile release binary
 RUN cargo build --release
 
 # ==============================================================================
@@ -27,7 +26,7 @@ RUN cargo build --release
 # ==============================================================================
 FROM debian:bookworm-slim
 
-# Install runtime dependencies
+# Install runtime dependencies and clean apt cache
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     libsqlite3-0 \
@@ -38,7 +37,7 @@ WORKDIR /app
 RUN mkdir -p /data
 
 # Copy compiled binary from builder stage to /app/taskflow
-COPY --from=builder /usr/src/taskflow/target/release/taskflow /app/taskflow
+COPY --from=builder /app/target/release/taskflow /app/taskflow
 
 # Default environment variables
 ENV SERVER_HOST=0.0.0.0 \
