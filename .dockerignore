@@ -1,0 +1,33 @@
+# Git repository
+.git
+.gitignore
+
+# Build artifacts
+target/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Local databases and journals
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+
+# Secrets and environment configurations
+.env
+.env.*
+!.env.example
+
+# Logs and archives
+*.log
+*.zip
+*.tar.gz
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
