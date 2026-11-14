@@ -152,6 +152,28 @@ async fn test_task_crud_lifecycle() {
     assert_eq!(patch_json["data"]["status"], "done");
     assert!(patch_json["data"]["completed_at"].is_string());
 
+    // 3b. Test explicit null clearing of optional field
+    let clear_payload = json!({ "description": null });
+    let clear_res = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("PUT")
+                .uri(format!("/api/v1/tasks/{}", task_id))
+                .header(COOKIE, format!("taskflow_session={}", token1))
+                .header("content-type", "application/json")
+                .body(Body::from(serde_json::to_vec(&clear_payload).unwrap()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(clear_res.status(), StatusCode::OK);
+    let clear_body = to_bytes(clear_res.into_body(), usize::MAX).await.unwrap();
+    let clear_json: Value = serde_json::from_slice(&clear_body).unwrap();
+    assert!(clear_json["data"]["description"].is_null());
+    // Title was omitted so it must have retained its original value
+    assert_eq!(clear_json["data"]["title"], "Complete Rust Web Architecture");
+
     // 4. Delete Task
     let del_res = app
         .clone()

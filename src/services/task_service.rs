@@ -7,6 +7,7 @@ use validator::Validate;
 use crate::{
     errors::AppError,
     models::{Task, TaskWithProject},
+    services::deserialize_double_option,
 };
 
 #[derive(Debug, Deserialize, Validate)]
@@ -27,11 +28,17 @@ pub struct UpdateTaskDto {
     #[validate(length(min = 1, max = 255, message = "Task title must be between 1 and 255 characters"))]
     pub title: Option<String>,
 
-    pub description: Option<String>,
-    pub project_id: Option<i64>,
+    #[serde(default, deserialize_with = "deserialize_double_option")]
+    pub description: Option<Option<String>>,
+
+    #[serde(default, deserialize_with = "deserialize_double_option")]
+    pub project_id: Option<Option<i64>>,
+
     pub priority: Option<String>,
     pub status: Option<String>,
-    pub due_date: Option<DateTime<Utc>>,
+
+    #[serde(default, deserialize_with = "deserialize_double_option")]
+    pub due_date: Option<Option<DateTime<Utc>>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -236,11 +243,20 @@ impl TaskService {
         .ok_or_else(|| AppError::NotFound("Task not found.".to_string()))?;
 
         let title = dto.title.unwrap_or(existing.title);
-        let description = dto.description.or(existing.description);
-        let project_id = dto.project_id.or(existing.project_id);
+        let description = match dto.description {
+            Some(opt) => opt,
+            None => existing.description,
+        };
+        let project_id = match dto.project_id {
+            Some(opt) => opt,
+            None => existing.project_id,
+        };
         let priority = dto.priority.unwrap_or(existing.priority).to_lowercase();
         let status = dto.status.unwrap_or(existing.status).to_lowercase();
-        let due_date = dto.due_date.or(existing.due_date);
+        let due_date = match dto.due_date {
+            Some(opt) => opt,
+            None => existing.due_date,
+        };
 
         if !["low", "medium", "high", "urgent"].contains(&priority.as_str()) {
             return Err(AppError::BadRequest("Invalid priority.".to_string()));

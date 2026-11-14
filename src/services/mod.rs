@@ -20,3 +20,11 @@ pub use project_service::{
 pub use task_service::{
     CreateTaskDto, TaskFilterQuery, TaskService, UpdateTaskDto, UpdateTaskStatusDto,
 };
+
+pub fn deserialize_double_option<'de, T, D>(deserializer: D) -> Result<Option<Option<T>>, D::Error>
+where
+    T: serde::Deserialize<'de>,
+    D: serde::Deserializer<'de>,
+{
+    serde::Deserialize::deserialize(deserializer).map(Some)
+}

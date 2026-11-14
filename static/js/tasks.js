@@ -90,7 +90,7 @@ function renderTasksList(tasks) {
   if (tasks.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="6" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+        <td colspan="7" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 0.5rem; opacity: 0.5;"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
           <p style="font-weight: 500;">No tasks found.</p>
           <p style="font-size: 0.85rem; margin-top: 0.25rem;">Create a new task or adjust your search filters.</p>

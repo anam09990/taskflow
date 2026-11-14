@@ -115,7 +115,7 @@ async function renderCalendar() {
           class="calendar-event-pill"
           style="border-left: 3px solid ${color}; ${style}"
           title="${escapeHtml(evt.title)} (${evt.status})"
-          onclick="event.stopPropagation(); viewEventById(${evt.id})"
+          onclick="event.stopPropagation(); viewEvent(${evt.id}, '${evt.event_type}')"
         >
           <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(evt.title)}</span>
         </div>
@@ -188,11 +188,11 @@ function closeCalendarModal() {
   document.getElementById("calendarModalBackdrop").classList.remove("active");
 }
 
-function viewEventById(id) {
-  const evt = currentCalendarEvents.find(e => e.id === id);
+function viewEvent(id, eventType) {
+  const evt = currentCalendarEvents.find(e => e.id === id && e.event_type === eventType);
   if (!evt) return;
   const dateStr = evt.due_date ? new Date(evt.due_date).toLocaleDateString() : 'N/A';
-  alert(`Event: ${evt.title}\nStatus: ${evt.status}\nPriority: ${evt.priority || 'medium'}\nDue: ${dateStr}`);
+  alert(`Event: ${evt.title}\nType: ${evt.event_type}\nStatus: ${evt.status}\nPriority: ${evt.priority || 'medium'}\nDue: ${dateStr}`);
 }
 
 async function handleCalendarTaskSubmit(e) {

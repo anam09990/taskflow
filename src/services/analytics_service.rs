@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use chrono::{Duration, Utc};
 use serde::Serialize;
 use sqlx::SqlitePool;
@@ -159,26 +160,31 @@ impl AnalyticsService {
         .fetch_one(pool)
         .await?;
 
+        // Fetch daily completed task counts for the last 30 days in a single grouped query
+        let daily_rows = sqlx::query_as::<_, (String, i64)>(
+            r#"
+            SELECT date(completed_at) as day_date, count(*) as count
+            FROM tasks
+            WHERE user_id = ? AND status = 'done' AND completed_at IS NOT NULL
+              AND date(completed_at) >= date('now', '-30 days')
+            GROUP BY date(completed_at)
+            "#
+        )
+        .bind(user_id)
+        .fetch_all(pool)
+        .await?;
+
+        let daily_counts: HashMap<String, i64> = daily_rows.into_iter().collect();
+
         // 7-day velocity series
         let now = Utc::now();
-        let mut weekly_velocity = Vec::new();
+        let mut weekly_velocity = Vec::with_capacity(7);
         let mut weekly_completed_count = 0;
 
         for i in (0..7).rev() {
             let day = now - Duration::days(i);
             let day_str = day.format("%Y-%m-%d").to_string();
-
-            let count: i64 = sqlx::query_scalar(
-                r#"
-                SELECT count(*) FROM tasks
-                WHERE user_id = ? AND status = 'done'
-                  AND date(completed_at) = ?
-                "#
-            )
-            .bind(user_id)
-            .bind(&day_str)
-            .fetch_one(pool)
-            .await?;
+            let count = daily_counts.get(&day_str).copied().unwrap_or(0);
 
             weekly_completed_count += count;
             weekly_velocity.push(DailyVelocity {
@@ -188,24 +194,13 @@ impl AnalyticsService {
         }
 
         // 30-day velocity series
-        let mut monthly_velocity = Vec::new();
+        let mut monthly_velocity = Vec::with_capacity(30);
         let mut monthly_completed_count = 0;
 
         for i in (0..30).rev() {
             let day = now - Duration::days(i);
             let day_str = day.format("%Y-%m-%d").to_string();
-
-            let count: i64 = sqlx::query_scalar(
-                r#"
-                SELECT count(*) FROM tasks
-                WHERE user_id = ? AND status = 'done'
-                  AND date(completed_at) = ?
-                "#
-            )
-            .bind(user_id)
-            .bind(&day_str)
-            .fetch_one(pool)
-            .await?;
+            let count = daily_counts.get(&day_str).copied().unwrap_or(0);
 
             monthly_completed_count += count;
             monthly_velocity.push(DailyVelocity {

@@ -1,10 +1,20 @@
 use axum::{
+    http::StatusCode,
     response::{Html, IntoResponse},
     routing::get,
-    http::StatusCode,
     Router,
 };
 use crate::routes::AppState;
+
+const INDEX_HTML: &str = include_str!("../../templates/index.html");
+const LOGIN_HTML: &str = include_str!("../../templates/login.html");
+const REGISTER_HTML: &str = include_str!("../../templates/register.html");
+const DASHBOARD_HTML: &str = include_str!("../../templates/dashboard.html");
+const TASKS_HTML: &str = include_str!("../../templates/tasks.html");
+const PROJECTS_HTML: &str = include_str!("../../templates/projects.html");
+const CALENDAR_HTML: &str = include_str!("../../templates/calendar.html");
+const ANALYTICS_HTML: &str = include_str!("../../templates/analytics.html");
+const ADMIN_HTML: &str = include_str!("../../templates/admin.html");
 
 pub fn web_routes() -> Router<AppState> {
     Router::new()
@@ -19,52 +29,38 @@ pub fn web_routes() -> Router<AppState> {
         .route("/admin", get(render_admin))
 }
 
-async fn serve_template(path: &str) -> impl IntoResponse {
-    match tokio::fs::read_to_string(path).await {
-        Ok(content) => (StatusCode::OK, Html(content)).into_response(),
-        Err(err) => {
-            tracing::warn!("Failed to read template at {}: {}", path, err);
-            (
-                StatusCode::NOT_FOUND,
-                Html("<h1>404 - Page Not Found</h1>".to_string()),
-            )
-                .into_response()
-        }
-    }
-}
-
 async fn render_index() -> impl IntoResponse {
-    serve_template("templates/index.html").await
+    (StatusCode::OK, Html(INDEX_HTML))
 }
 
 async fn render_login() -> impl IntoResponse {
-    serve_template("templates/login.html").await
+    (StatusCode::OK, Html(LOGIN_HTML))
 }
 
 async fn render_register() -> impl IntoResponse {
-    serve_template("templates/register.html").await
+    (StatusCode::OK, Html(REGISTER_HTML))
 }
 
 async fn render_dashboard() -> impl IntoResponse {
-    serve_template("templates/dashboard.html").await
+    (StatusCode::OK, Html(DASHBOARD_HTML))
 }
 
 async fn render_tasks() -> impl IntoResponse {
-    serve_template("templates/tasks.html").await
+    (StatusCode::OK, Html(TASKS_HTML))
 }
 
 async fn render_projects() -> impl IntoResponse {
-    serve_template("templates/projects.html").await
+    (StatusCode::OK, Html(PROJECTS_HTML))
 }
 
 async fn render_calendar() -> impl IntoResponse {
-    serve_template("templates/calendar.html").await
+    (StatusCode::OK, Html(CALENDAR_HTML))
 }
 
 async fn render_analytics() -> impl IntoResponse {
-    serve_template("templates/analytics.html").await
+    (StatusCode::OK, Html(ANALYTICS_HTML))
 }
 
 async fn render_admin() -> impl IntoResponse {
-    serve_template("templates/admin.html").await
+    (StatusCode::OK, Html(ADMIN_HTML))
 }
