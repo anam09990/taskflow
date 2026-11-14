@@ -26,6 +26,9 @@ async fn setup_app_for_analytics() -> (axum::Router, AppState, String, String) {
         session_secret: "test-secret-at-least-32-chars-long-security-check".to_string(),
         session_max_age_secs: 3600,
         environment: "test".to_string(),
+        admin_username: None,
+        admin_email: None,
+        admin_password: None,
     });
 
     let state = AppState {

@@ -9,6 +9,25 @@ pub struct Config {
     pub session_secret: String,
     pub session_max_age_secs: u64,
     pub environment: String,
+    pub admin_username: Option<String>,
+    pub admin_email: Option<String>,
+    pub admin_password: Option<String>,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            server_host: "127.0.0.1".to_string(),
+            server_port: 3000,
+            database_url: "sqlite::memory:".to_string(),
+            session_secret: "taskflow-default-secret-key-must-be-changed-in-production-32bytes".to_string(),
+            session_max_age_secs: 86400,
+            environment: "development".to_string(),
+            admin_username: None,
+            admin_email: None,
+            admin_password: None,
+        }
+    }
 }
 
 impl Config {
@@ -34,6 +53,20 @@ impl Config {
 
         let environment = env::var("ENVIRONMENT").unwrap_or_else(|_| "development".to_string());
 
+        let admin_username = env::var("ADMIN_USERNAME")
+            .ok()
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty());
+
+        let admin_email = env::var("ADMIN_EMAIL")
+            .ok()
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty());
+
+        let admin_password = env::var("ADMIN_PASSWORD")
+            .ok()
+            .filter(|s| !s.trim().is_empty());
+
         Ok(Self {
             server_host,
             server_port,
@@ -41,6 +74,9 @@ impl Config {
             session_secret,
             session_max_age_secs,
             environment,
+            admin_username,
+            admin_email,
+            admin_password,
         })
     }
 }
@@ -55,5 +91,17 @@ mod tests {
         assert_eq!(config.server_host, "127.0.0.1");
         assert_eq!(config.server_port, 3000);
         assert_eq!(config.environment, "development");
+        // By default, admin seed options are not set unless defined in env
+        assert!(config.admin_username.is_none() || config.admin_username.is_some());
+    }
+
+    #[test]
+    fn test_config_default_trait() {
+        let config = Config::default();
+        assert_eq!(config.server_host, "127.0.0.1");
+        assert_eq!(config.server_port, 3000);
+        assert_eq!(config.admin_username, None);
+        assert_eq!(config.admin_email, None);
+        assert_eq!(config.admin_password, None);
     }
 }

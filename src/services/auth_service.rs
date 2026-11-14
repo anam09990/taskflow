@@ -85,11 +85,8 @@ impl AuthService {
             ));
         }
 
-        // First registered user automatically becomes admin
-        let user_count: (i64,) = sqlx::query_as("SELECT count(*) FROM users")
-            .fetch_one(pool)
-            .await?;
-        let role = if user_count.0 == 0 { "admin" } else { "user" };
+        // Regular registration always grants the user role
+        let role = "user";
 
         let password_hash = Self::hash_password(&dto.password)?;
         let user_uuid = Uuid::new_v4().to_string();
@@ -122,6 +119,75 @@ impl AuthService {
         .await;
 
         Ok(UserResponse::from(user))
+    }
+
+    /// Automatically seeds the system administrator account on startup if configured in the environment.
+    pub async fn seed_admin(
+        pool: &SqlitePool,
+        config: &crate::config::Config,
+    ) -> Result<(), AppError> {
+        let (Some(admin_username), Some(admin_email), Some(admin_password)) = (
+            &config.admin_username,
+            &config.admin_email,
+            &config.admin_password,
+        ) else {
+            tracing::debug!("Admin seed skipped: ADMIN_USERNAME, ADMIN_EMAIL, or ADMIN_PASSWORD not configured.");
+            return Ok(());
+        };
+
+        let username = admin_username.trim().to_lowercase();
+        let email = admin_email.trim().to_lowercase();
+
+        if username.is_empty() || email.is_empty() || admin_password.is_empty() {
+            tracing::warn!("Admin seed skipped: Provided admin credentials contain empty values.");
+            return Ok(());
+        }
+
+        // Check if an account with this username or email already exists
+        let existing: Option<(i64,)> = sqlx::query_as(
+            "SELECT id FROM users WHERE username = ? OR email = ? LIMIT 1"
+        )
+        .bind(&username)
+        .bind(&email)
+        .fetch_optional(pool)
+        .await?;
+
+        if let Some((id,)) = existing {
+            tracing::info!("Admin user already exists (id: {}). Skipping admin seed.", id);
+            return Ok(());
+        }
+
+        let password_hash = Self::hash_password(admin_password)?;
+        let user_uuid = Uuid::new_v4().to_string();
+
+        let admin = sqlx::query_as::<_, User>(
+            r#"
+            INSERT INTO users (uuid, username, email, password_hash, role, is_active)
+            VALUES (?, ?, ?, ?, 'admin', 1)
+            RETURNING id, uuid, username, email, password_hash, role, is_active, created_at, updated_at
+            "#
+        )
+        .bind(&user_uuid)
+        .bind(&username)
+        .bind(&email)
+        .bind(&password_hash)
+        .fetch_one(pool)
+        .await?;
+
+        // Log admin seed activity
+        let _ = sqlx::query(
+            "INSERT INTO activity_logs (user_id, action, entity_type, entity_id, details) VALUES (?, ?, ?, ?, ?)"
+        )
+        .bind(admin.id)
+        .bind("seed_admin")
+        .bind("user")
+        .bind(&admin.uuid)
+        .bind("System administrator account seeded from environment variables")
+        .execute(pool)
+        .await;
+
+        tracing::info!("Successfully seeded system administrator account: {} ({})", admin.username, admin.email);
+        Ok(())
     }
 
     pub async fn login(

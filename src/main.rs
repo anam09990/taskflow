@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use taskflow::{config, database, routes};
+use taskflow::{config, database, routes, services};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
@@ -27,6 +27,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Run database migrations
     database::run_migrations(&db_pool).await?;
+
+    // Seed default admin account if configured in environment
+    services::AuthService::seed_admin(&db_pool, &config).await?;
 
     // Create shared app state
     let state = routes::AppState {

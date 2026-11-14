@@ -24,6 +24,9 @@ async fn test_health_check_endpoint() {
         session_secret: "test-secret-at-least-32-chars-long-security-check".to_string(),
         session_max_age_secs: 3600,
         environment: "test".to_string(),
+        admin_username: None,
+        admin_email: None,
+        admin_password: None,
     });
 
     let state = AppState {
@@ -74,6 +77,9 @@ async fn test_fallback_404() {
         session_secret: "test-secret-at-least-32-chars-long-security-check".to_string(),
         session_max_age_secs: 3600,
         environment: "test".to_string(),
+        admin_username: None,
+        admin_email: None,
+        admin_password: None,
     });
 
     let state = AppState {
@@ -109,6 +115,9 @@ async fn test_static_asset_serving() {
         session_secret: "test-secret-at-least-32-chars-long-security-check".to_string(),
         session_max_age_secs: 3600,
         environment: "test".to_string(),
+        admin_username: None,
+        admin_email: None,
+        admin_password: None,
     });
 
     let state = AppState {
@@ -147,6 +156,9 @@ async fn test_web_route_rendering() {
         session_secret: "test-secret-at-least-32-chars-long-security-check".to_string(),
         session_max_age_secs: 3600,
         environment: "test".to_string(),
+        admin_username: None,
+        admin_email: None,
+        admin_password: None,
     });
 
     let state = AppState {
