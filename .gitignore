@@ -1,0 +1,12 @@
+/target
+.env
+*.exe
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+*.log
+*.zip
+node_modules/
+.DS_Store
+Thumbs.db

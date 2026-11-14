@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projects - TASKFLOW</title>
+  <link rel="stylesheet" href="/static/css/variables.css">
+  <link rel="stylesheet" href="/static/css/layout.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <style>
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+    .color-swatch-list {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .color-swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-full);
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform var(--transition-fast);
+    }
+    .color-swatch:hover {
+      transform: scale(1.15);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="appSidebar">
+      <div class="sidebar-header">
+        <a href="/dashboard" class="brand-logo">
+          <div class="brand-icon">T</div>
+          <span>TASKFLOW</span>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Workspace</div>
+        <a href="/dashboard" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+        <a href="/tasks" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Tasks
+        </a>
+        <a href="/projects" class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          Projects
+        </a>
+        <a href="/calendar" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Calendar
+        </a>
+        <a href="/analytics" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Analytics
+        </a>
+
+        <div class="nav-section-title" id="adminSectionTitle">System</div>
+        <a href="/admin" class="nav-item" id="adminNavLink" style="display: none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Admin Panel
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-mini-profile">
+          <div class="user-avatar" id="headerUserAvatar">U</div>
+          <div class="user-info">
+            <span class="user-name" id="headerUserName">User</span>
+            <span class="user-role-badge" id="headerUserRole">Member</span>
+          </div>
+        </div>
+        <button class="btn-icon" onclick="logout()" title="Logout" style="border: none; color: #ef4444;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Toggle Navigation">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <h1 class="page-title">Projects</h1>
+            <span class="badge" id="projectCountBadge" style="background-color: var(--border-subtle); color: var(--text-secondary);">0 projects</span>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <button class="btn-icon" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Theme"></button>
+          <button class="btn btn-primary" onclick="openCreateProjectModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Project
+          </button>
+        </div>
+      </header>
+
+      <main class="content-area">
+        <div class="projects-grid" id="projectsGrid">
+          <div style="grid-column: 1 / -1; text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+            Loading projects...
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Create / Edit Project Modal -->
+  <div class="modal-backdrop" id="projectModalBackdrop" onclick="if(event.target === this) closeProjectModal()">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 class="card-title" id="projectModalTitle">Create New Project</h2>
+        <button class="btn-icon" onclick="closeProjectModal()" style="border: none;">✕</button>
+      </div>
+      <form id="projectForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="projectTitle">Project Title *</label>
+            <input type="text" id="projectTitle" class="form-control" placeholder="e.g. Q4 Marketing Campaign" required maxlength="100" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="projectDescription">Description</label>
+            <textarea id="projectDescription" class="form-control" rows="3" placeholder="Goals, objectives, or scope of this project..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Accent Color</label>
+            <input type="hidden" id="projectColor" value="#3b82f6" />
+            <div class="color-swatch-list">
+              <button type="button" class="color-swatch" data-color="#3b82f6" style="background-color: #3b82f6;" onclick="selectColor('#3b82f6')"></button>
+              <button type="button" class="color-swatch" data-color="#10b981" style="background-color: #10b981;" onclick="selectColor('#10b981')"></button>
+              <button type="button" class="color-swatch" data-color="#f59e0b" style="background-color: #f59e0b;" onclick="selectColor('#f59e0b')"></button>
+              <button type="button" class="color-swatch" data-color="#ef4444" style="background-color: #ef4444;" onclick="selectColor('#ef4444')"></button>
+              <button type="button" class="color-swatch" data-color="#8b5cf6" style="background-color: #8b5cf6;" onclick="selectColor('#8b5cf6')"></button>
+              <button type="button" class="color-swatch" data-color="#ec4899" style="background-color: #ec4899;" onclick="selectColor('#ec4899')"></button>
+              <button type="button" class="color-swatch" data-color="#06b6d4" style="background-color: #06b6d4;" onclick="selectColor('#06b6d4')"></button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label class="form-label" for="projectStatus">Status</label>
+              <select id="projectStatus" class="form-control">
+                <option value="planning">Planning</option>
+                <option value="active" selected>Active</option>
+                <option value="on_hold">On Hold</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="projectDueDate">Target Due Date</label>
+              <input type="date" id="projectDueDate" class="form-control" />
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeProjectModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="projectModalSubmitBtn">Create Project</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('appSidebar');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      sidebar.classList.toggle('open');
+      backdrop.classList.toggle('active');
+    }
+  </script>
+  <script src="/static/js/theme.js"></script>
+  <script src="/static/js/toast.js"></script>
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/projects.js"></script>
+</body>
+</html>

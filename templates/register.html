@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - TASKFLOW</title>
+  <link rel="stylesheet" href="/static/css/variables.css">
+  <link rel="stylesheet" href="/static/css/layout.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <style>
+    .auth-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background-color: var(--bg-app);
+    }
+    .auth-card {
+      width: 100%;
+      max-width: 440px;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-xl);
+      padding: 2.25rem;
+    }
+    .auth-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .auth-logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #38bdf8 0%, #3b82f6 100%);
+      border-radius: var(--radius-md);
+      color: white;
+      font-weight: 800;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .auth-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .auth-subtitle {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+    .password-hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div style="display: flex; justify-content: flex-end; margin-bottom: -1rem;">
+        <button class="btn-icon" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Theme"></button>
+      </div>
+      <div class="auth-header">
+        <div class="auth-logo">T</div>
+        <h1 class="auth-title">Create Account</h1>
+        <p class="auth-subtitle">Join TASKFLOW and elevate your productivity</p>
+      </div>
+
+      <form id="registerForm">
+        <div class="form-group">
+          <label class="form-label" for="username">Username</label>
+          <input
+            type="text"
+            id="username"
+            class="form-control"
+            placeholder="3-30 characters"
+            minlength="3"
+            maxlength="30"
+            required
+            autocomplete="username"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address</label>
+          <input
+            type="email"
+            id="email"
+            class="form-control"
+            placeholder="name@domain.com"
+            required
+            autocomplete="email"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            class="form-control"
+            placeholder="Minimum 8 characters"
+            minlength="8"
+            required
+            autocomplete="new-password"
+          />
+          <div class="password-hint">Must contain at least 8 characters</div>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn btn-primary" style="width: 100%; padding: 0.75rem; margin-top: 0.5rem;">
+          Get Started
+        </button>
+      </form>
+
+      <div style="text-align: center; margin-top: 1.5rem; font-size: 0.875rem; color: var(--text-secondary);">
+        Already have an account?
+        <a href="/login" style="color: var(--primary); font-weight: 600; text-decoration: none;">Sign In</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/theme.js"></script>
+  <script src="/static/js/toast.js"></script>
+  <script src="/static/js/api.js"></script>
+  <script>
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById("submitBtn");
+      const username = document.getElementById("username").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (password.length < 8) {
+        showToast("Password must be at least 8 characters long.", "warning");
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Creating account...";
+
+      try {
+        await api.post("/api/v1/auth/register", { username, email, password });
+        showToast("Account created successfully! Signing in...", "success");
+
+        // Automatically log the user in
+        const loginRes = await api.post("/api/v1/auth/login", { username_or_email: username, password });
+        setCurrentUser(loginRes.data.user, loginRes.data.token);
+
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 500);
+      } catch (err) {
+        showToast(err.message, "error");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Get Started";
+      }
+    });
+  </script>
+</body>
+</html>

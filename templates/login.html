@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - TASKFLOW</title>
+  <link rel="stylesheet" href="/static/css/variables.css">
+  <link rel="stylesheet" href="/static/css/layout.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <style>
+    .auth-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background-color: var(--bg-app);
+    }
+    .auth-card {
+      width: 100%;
+      max-width: 420px;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-xl);
+      padding: 2.25rem;
+    }
+    .auth-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .auth-logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #38bdf8 0%, #3b82f6 100%);
+      border-radius: var(--radius-md);
+      color: white;
+      font-weight: 800;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .auth-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .auth-subtitle {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div style="display: flex; justify-content: flex-end; margin-bottom: -1rem;">
+        <button class="btn-icon" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Theme"></button>
+      </div>
+      <div class="auth-header">
+        <div class="auth-logo">T</div>
+        <h1 class="auth-title">Welcome Back</h1>
+        <p class="auth-subtitle">Sign in to your TASKFLOW workspace</p>
+      </div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label class="form-label" for="usernameOrEmail">Username or Email</label>
+          <input
+            type="text"
+            id="usernameOrEmail"
+            class="form-control"
+            placeholder="e.g. alex or alex@example.com"
+            required
+            autocomplete="username"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            class="form-control"
+            placeholder="••••••••"
+            required
+            autocomplete="current-password"
+          />
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn btn-primary" style="width: 100%; padding: 0.75rem; margin-top: 0.5rem;">
+          Sign In
+        </button>
+      </form>
+
+      <div style="text-align: center; margin-top: 1.5rem; font-size: 0.875rem; color: var(--text-secondary);">
+        Don't have an account?
+        <a href="/register" style="color: var(--primary); font-weight: 600; text-decoration: none;">Create Account</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/theme.js"></script>
+  <script src="/static/js/toast.js"></script>
+  <script src="/static/js/api.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get("expired")) {
+        showToast("Your session has expired. Please sign in again.", "warning");
+      }
+
+      document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById("submitBtn");
+        const username_or_email = document.getElementById("usernameOrEmail").value.trim();
+        const password = document.getElementById("password").value;
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Signing in...";
+
+        try {
+          const res = await api.post("/api/v1/auth/login", { username_or_email, password });
+          showToast("Signed in successfully!", "success");
+          setCurrentUser(res.data.user, res.data.token);
+          setTimeout(() => {
+            window.location.href = "/dashboard";
+          }, 400);
+        } catch (err) {
+          showToast(err.message, "error");
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Sign In";
+        }
+      });
+    });
+  </script>
+</body>
+</html>
